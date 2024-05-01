@@ -9,6 +9,7 @@
   "dependencies": {
     "@instructor-ai/instructor": "^1.2.1",
     "@types/express": "^4.17.21",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "groq-sdk": "^0.3.3",
