@@ -37,9 +37,48 @@ io.on('connection', async socket => {
     }
   })
 
+  socket.on('message', async ({ content, schemaId }, callback) => {
+    try {
+      // Get the schema from the map using the id
+      const zodSchema = socket.schemas.get(schemaId)
+
+      // Run the instructor with the content and schema
+      const response = await instructor(content, zodSchema)
+
+      // If a callback function is provided, send the response to the callback
+      if (callback && typeof callback === 'function') {
+        // trim metadata from response
+        delete response._meta
+
+        // send response to callback
+        callback(response)
+      }
+    } catch (error) {
+      console.error('error:', error)
+      socket.emit('error', error)
+    }
+  })
+
+  // Create a map to store schemas
+  socket.schemas = new Map()
+
   socket.on('schema', async schema => {
-    socket.schema = createZodSchemaFromJson(schema)
-    socket.emit('schema loaded', socket.schema.shape)
+    const zodSchema = createZodSchemaFromJson(schema)
+    // Generate a unique id for the schema
+    const schemaId = Date.now().toString()
+    // Store the schema in the map with the id as the key
+    socket.schemas.set(schemaId, zodSchema)
+    // Emit the schema id instead of the shape
+    socket.emit('schema loaded', schemaId)
+  })
+
+  socket.on('get schema', async (schemaId, callback) => {
+    // Get the schema from the map using the id
+    const zodSchema = socket.schemas.get(schemaId)
+    // If a callback function is provided, send the schema shape to the callback
+    if (callback && typeof callback === 'function') {
+      callback(zodSchema.shape)
+    }
   })
 
   socket.on('disconnect', () => {
