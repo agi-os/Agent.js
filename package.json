@@ -13,7 +13,12 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "groq-sdk": "^0.3.3",
+    "playwright": "^1.43.1",
     "socket.io": "^4.7.5",
     "zod": "^3.23.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.1",
+    "@types/node": "^20.12.7"
   }
 }

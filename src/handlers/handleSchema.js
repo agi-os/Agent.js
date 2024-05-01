@@ -1,4 +1,4 @@
-import createZodSchemaFromJson from './instructor/createZodSchemaFromJson.js'
+import createZodSchemaFromJson from '../instructor/createZodSchemaFromJson.js'
 
 /**
  * Get a schema from the socket's schema map

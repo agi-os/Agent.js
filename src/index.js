@@ -5,9 +5,9 @@ import { dirname, join } from 'node:path'
 import { Server } from 'socket.io'
 import cors from 'cors'
 
-import handleMessage from './handleMessage.js'
-import { getSchema, loadSchema } from './handleSchema.js'
-import { echo } from './tools/index.js'
+import handleMessage from './handlers/handleMessage.js'
+import { getSchema, loadSchema } from './handlers/handleSchema.js'
+import handleAction from './handlers/handleAction.js'
 
 const app = express()
 app.use(cors())
@@ -38,24 +38,7 @@ io.on('connection', async socket => {
   socket.on('get schema', getSchema(socket))
 
   // Handle action events
-  socket.on('action', async (action, callback) => {
-    try {
-      const { tool, args } = action
-
-      console.log('action:', { tool, args })
-
-      const response = await echo(args)
-
-      if (callback && typeof callback === 'function') {
-        callback(response)
-      }
-    } catch (error) {
-      console.error('error:', error)
-      if (callback && typeof callback === 'function') {
-        callback(error)
-      }
-    }
-  })
+  socket.on('action', handleAction(socket))
 
   // Handle disconnect events
   socket.on('disconnect', () => {

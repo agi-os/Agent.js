@@ -1,14 +1,20 @@
+import echo from './echo.js'
+import webSearch from './webSearch.js'
+
 /**
- * Echoes the message for testing purposes
- * @param {string} msg - The message to echo
- * @returns {string} - The echoed message
+ * Router for actions
  */
-export const echo = async msg => {
-  console.log('starting echo')
-  return new Promise(resolve => {
-    setTimeout(() => {
-      console.log('echo:', msg)
-      resolve(msg + ' (echoed)')
-    }, 500)
-  })
+const router = async ({ tool, args }) => {
+  switch (tool) {
+    case 'echo':
+      return await echo(args)
+
+    case 'Web search':
+      return await webSearch(args)
+
+    default:
+      return `Tool ${tool} not found.`
+  }
 }
+
+export default router
