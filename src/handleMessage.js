@@ -1,4 +1,5 @@
 import instructor from './instructor/index.js'
+import createZodSchemaFromJson from './instructor/createZodSchemaFromJson.js'
 
 /**
  * Handle message events
@@ -9,10 +10,18 @@ import instructor from './instructor/index.js'
  */
 const handleMessage =
   socket =>
-  async ({ content, schemaId }, callback) => {
+  async ({ content, schemaId, schemaJson }, callback) => {
+    // initialize to an empty schema
+    let zodSchema = null
+
     try {
-      // Get the schema from the map using the id
-      const zodSchema = socket.schemas.get(schemaId)
+      if (schemaJson) {
+        // Create a Zod schema from the provided JSON schema
+        zodSchema = createZodSchemaFromJson(schemaJson)
+      } else {
+        // Use the predefined schema from the schema map via the schema ID
+        zodSchema = socket.schemas.get(schemaId)
+      }
 
       // Run the instructor with the content and schema
       const response = await instructor(content, zodSchema)

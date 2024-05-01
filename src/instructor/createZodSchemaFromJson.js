@@ -6,19 +6,19 @@ import { z } from 'zod'
  * @returns {z.ZodObject} - Zod schema object.
  */
 const createZodSchemaFromJson = json => {
-  const schemaObj = JSON.parse(json)
+  const schemaObj = typeof json === 'string' ? JSON.parse(json) : json
   const zodSchemaObj = {}
 
   for (const key in schemaObj) {
-    const { type, constraints, description } = schemaObj[key]
+    const { type, constraints, description, items } = schemaObj[key]
     let zodSchema
 
     switch (type) {
       case 'number':
         zodSchema = z.number()
-        if (constraints.min !== undefined)
+        if (constraints?.min !== undefined)
           zodSchema = zodSchema.min(constraints.min)
-        if (constraints.max !== undefined)
+        if (constraints?.max !== undefined)
           zodSchema = zodSchema.max(constraints.max)
         break
       case 'string':
@@ -26,6 +26,9 @@ const createZodSchemaFromJson = json => {
         break
       case 'enum':
         zodSchema = z.enum(constraints.values)
+        break
+      case 'array':
+        zodSchema = z.array(createZodSchemaFromJson(items))
         break
       default:
         throw new Error(`Unsupported type: ${type}`)

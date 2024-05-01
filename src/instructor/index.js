@@ -3,7 +3,6 @@ const { parsed } = config()
 
 import Instructor from '@instructor-ai/instructor'
 import Groq from 'groq-sdk'
-import { response } from 'express'
 
 import createZodSchemaFromJson from './createZodSchemaFromJson.js'
 

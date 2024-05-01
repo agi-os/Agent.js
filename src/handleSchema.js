@@ -35,7 +35,7 @@ const loadSchema = socket => async (schema, callback) => {
     socket.schemas.set(schemaId, zodSchema)
 
     // Emit the schema id instead of the shape
-    socket.emit('schema loaded', schemaId)
+    socket.emit('schema loaded', { schemaId, schemaJson: schema })
 
     // If a callback function is provided, send the schema id to the callback
     if (callback && typeof callback === 'function') {
