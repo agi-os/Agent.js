@@ -10,14 +10,30 @@ const groq = new Groq({
 
 export const client = Instructor({ client: groq, mode: 'TOOLS', debug: true })
 
-import { z } from 'zod'
-
-const FunctionSchema = z.object({
-  function: z.object({
-    name: z.string(),
-    arguments: z.string(),
-  }),
-})
+const getFunctionCallDescription = response => {
+  if (response.choices && response.choices.length > 0) {
+    const firstChoice = response.choices[0]
+    if (
+      firstChoice.message &&
+      firstChoice.message.tool_calls &&
+      firstChoice.message.tool_calls.length > 0
+    ) {
+      const firstToolCall = firstChoice.message.tool_calls[0]
+      const functionName = firstToolCall.function.name
+      let functionArguments = firstToolCall.function.arguments
+      try {
+        functionArguments = JSON.parse(functionArguments)
+      } catch (error) {
+        console.error('Error parsing function arguments:', error)
+      }
+      return {
+        function: functionName,
+        arguments: functionArguments,
+      }
+    }
+  }
+  return { error: 'No function call found in the response' }
+}
 
 /**
  * Call the LLM safely with handling for errors and timeouts.
@@ -30,16 +46,19 @@ const callLlmSafely = async ({ tools, content }) => {
   try {
     // Create the LLM caller config object
     const toolCaller = {
-      messages: [{ role: 'user', content }],
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a tool selector, use the most appropriate tool for the job.',
+        },
+        { role: 'user', content },
+      ],
       tools,
       tool_choice: 'auto',
       model: 'llama3-70b-8192',
       temperature: 0,
-      // max_retries: 0,
-      // response_model: { schema: FunctionSchema, name: 'FunctionSchema' },
     }
-
-    console.log(JSON.stringify(toolCaller, null, 2))
 
     // Call the LLM
     const responsePromise = client.chat.completions.create(toolCaller)
@@ -47,7 +66,9 @@ const callLlmSafely = async ({ tools, content }) => {
       setTimeout(() => reject(new Error('Request timed out')), 1500)
     )
 
-    const response = await Promise.race([responsePromise, timeoutPromise])
+    const response = getFunctionCallDescription(
+      await Promise.race([responsePromise, timeoutPromise])
+    )
 
     // Return the response
     return response

@@ -1,4 +1,4 @@
-import createZodSchemaFromJson from '../instructor/createZodSchemaFromJson.js'
+import createZodSchemaFromJson from './createZodSchemaFromJson.js'
 import generateToolSchemas from '../tools/generateToolSchemas.js'
 
 /**

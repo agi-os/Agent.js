@@ -1,5 +1,5 @@
 import instructor from '../instructor/index.js'
-import createZodSchemaFromJson from '../instructor/createZodSchemaFromJson.js'
+import createZodSchemaFromJson from './createZodSchemaFromJson.js'
 
 /**
  * Handle message events
