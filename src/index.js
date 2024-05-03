@@ -13,6 +13,8 @@ import {
 } from './handlers/handleSchema.js'
 import handleAction from './handlers/handleAction.js'
 
+import toolCaller from './instructor/toolCaller.js'
+
 const app = express()
 app.use(cors())
 
@@ -33,6 +35,9 @@ app.get('/', (req, res) => {
 io.on('connection', async socket => {
   // Handle message events
   socket.on('message', handleMessage(socket))
+
+  // Handle tool events
+  socket.on('tool', toolCaller(socket))
 
   // Create a map to store schemas
   socket.schemas = new Map()
