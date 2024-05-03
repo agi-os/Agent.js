@@ -4,28 +4,23 @@ import reflection from './reflection.js'
 import planning from './planning.js'
 import webScrape from './webScrape.js'
 
+export const tools = {
+  echo,
+  planning,
+  reflection,
+  webSearch,
+  webScrape,
+}
+
 /**
- * Router for actions
+ * Router for tools
  */
 const router = async ({ tool, args }) => {
-  switch (tool) {
-    case 'echo':
-      return await echo(args)
-
-    case 'planning':
-      return await planning(args)
-
-    case 'reflection':
-      return await reflection(args)
-
-    case 'webSearch':
-      return await webSearch(args)
-
-    case 'webScrape':
-      return await webScrape(args)
-
-    default:
-      return `Tool ${tool} not found.`
+  const toolFunction = tools[tool]
+  if (toolFunction) {
+    return await toolFunction(args)
+  } else {
+    return `Tool ${tool} not found.`
   }
 }
 

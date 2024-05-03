@@ -1,4 +1,22 @@
 import createZodSchemaFromJson from '../instructor/createZodSchemaFromJson.js'
+import generateToolSchemas from '../tools/generateToolSchemas.js'
+
+/**
+ * Returns all available tool schemas via the callback
+ * @param {Socket} socket - The socket requesting the schemas
+ * @returns {object[]} - An array of tool schemas
+ * @example
+ * socket.on('get schemas', getToolSchemas(socket))
+ */
+export const getToolSchemas = socket => async callback => {
+  // Get all available tool schemas
+  const toolSchemas = generateToolSchemas()
+
+  // If a callback function is provided, send the tool schemas to the callback
+  if (callback && typeof callback === 'function') {
+    callback(toolSchemas)
+  }
+}
 
 /**
  * Get a schema from the socket's schema map
@@ -7,7 +25,7 @@ import createZodSchemaFromJson from '../instructor/createZodSchemaFromJson.js'
  * @example
  * socket.on('get schema', getSchema(socket))
  */
-const getSchema = socket => async (schemaId, callback) => {
+export const getSchema = socket => async (schemaId, callback) => {
   // Get the schema from the map using the id
   const zodSchema = socket.schemas.get(schemaId)
 
@@ -24,7 +42,7 @@ const getSchema = socket => async (schemaId, callback) => {
  * @example
  * socket.on('schema', loadSchema(socket))
  */
-const loadSchema = socket => async (schema, callback) => {
+export const loadSchema = socket => async (schema, callback) => {
   try {
     const zodSchema = createZodSchemaFromJson(schema)
 
@@ -48,5 +66,3 @@ const loadSchema = socket => async (schema, callback) => {
     }
   }
 }
-
-export { getSchema, loadSchema }

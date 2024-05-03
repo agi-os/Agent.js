@@ -6,7 +6,11 @@ import { Server } from 'socket.io'
 import cors from 'cors'
 
 import handleMessage from './handlers/handleMessage.js'
-import { getSchema, loadSchema } from './handlers/handleSchema.js'
+import {
+  getSchema,
+  loadSchema,
+  getToolSchemas,
+} from './handlers/handleSchema.js'
 import handleAction from './handlers/handleAction.js'
 
 const app = express()
@@ -36,6 +40,7 @@ io.on('connection', async socket => {
   // Handle schema events
   socket.on('schema', loadSchema(socket))
   socket.on('get schema', getSchema(socket))
+  socket.on('tool schemas', getToolSchemas(socket))
 
   // Handle action events
   socket.on('action', handleAction(socket))
