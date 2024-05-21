@@ -23,7 +23,7 @@ const webSearch = async query => {
   // Wait for page to load (auto-waiting is enabled by default)
   await page.waitForLoadState('domcontentloaded')
 
-  // Extract all titles and hrefs joining them in a single object
+  // Extract all titles and href joining them in a single object
   const data = await page.$$eval('a', elements =>
     elements.map(element => ({
       title: element.textContent,
