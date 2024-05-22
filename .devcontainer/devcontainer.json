@@ -27,7 +27,9 @@
         // Markdown mermaid syntax highlighting
         "bpruitt-goddard.mermaid-markdown-syntax-highlighting",
         // Markdown mermaid preview rendering
-        "bierner.markdown-mermaid"
+        "bierner.markdown-mermaid",
+        // Codiumate
+        "Codium.codium"
       ],
       "settings": {
         // Enable GitHub Copilot everywhere
