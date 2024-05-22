@@ -6,6 +6,7 @@ import { Server } from 'socket.io'
 import cors from 'cors'
 
 import handleMessage from './handlers/handleMessage.js'
+import handleLLM from './handlers/handleLLM.js'
 import {
   getSchema,
   loadSchema,
@@ -33,8 +34,36 @@ app.get('/', (req, res) => {
 })
 
 io.on('connection', async socket => {
+  console.log('initial transport', socket.conn.transport.name) // prints "polling"
+  socket.conn.once('upgrade', () => {
+    console.log('upgraded transport', socket.conn.transport.name) // prints "websocket"
+  })
+
+  // For connection debugging
+  // socket.conn.on('packet', console.log)
+  // socket.conn.on('packetCreate', console.log)
+  // socket.conn.on('drain', console.log)
+  // socket.conn.on('close', console.log)
+
+  socket.prependAny((event, ...args) => {
+    console.log('↙️ ', event, args)
+  })
+
+  // Reply to test with timestamp
+  socket.on('test', (...args) => {
+    // If last of args is callback, call it back
+    if (typeof args[args.length - 1] === 'function') {
+      args[args.length - 1](new Date().getTime())
+    } else {
+      console.log('test with no callback received', args)
+    }
+  })
+
   // Handle message events
   socket.on('message', handleMessage(socket))
+
+  // Handle LLM events
+  socket.on('llm', handleLLM(socket))
 
   // Handle tool events
   socket.on('tool', toolCaller(socket))
