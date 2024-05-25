@@ -1,22 +1,17 @@
-import instructor from '../instructor/index.js'
-import { yamlToZod } from './zodAjvYamlConvert.js'
-
-import {
-  system as createYamlSchemaSystemPrompt,
-  yaml as createYamlSchemaYaml,
-} from '../prompts/createYamlSchema.js'
+import { yamlToZod } from '../utils/schemaConversions.js'
+import { client } from '../llm/index.js'
+import { createYamlSchemaPrompt } from '../prompts/createYamlSchema.js'
 
 /**
- * Handle message events
- * @param {Socket} socket - The socket to handle messages for
- * @returns {Function} - A function that will handle message events for the socket
- * @example
- * socket.on('message', handleMessage(socket))
+ * Handles LLM requests that involve schema interaction.
+ *
+ * @param {Socket} socket - The socket.io socket instance.
+ * @returns {Function} - An asynchronous function to handle incoming schema-based LLM requests.
  */
 const handleLlmWithSchema =
   socket =>
   async ({ content, schema, temperature, system, preset }, callback) => {
-    console.log('✨ handling call with schema', {
+    console.log('✨ Handling LLM call with schema', {
       content,
       schema,
       temperature,
@@ -24,51 +19,31 @@ const handleLlmWithSchema =
       preset,
     })
 
-    // If we have a reference available, use the reference name to initialize the custom values
-    if (preset === 'createYamlSchema') {
-      system = createYamlSchemaSystemPrompt
-      schema = createYamlSchemaYaml
-      console.log('using custom system ref', {
-        preset,
-        system,
-        schema,
-      })
-    }
-
-    // initialize to an empty schema
-    let zodSchema = null
-
     try {
-      if (schema) {
-        // Create a Zod schema from the provided JSON schema
-        zodSchema = yamlToZod(schema)
-      } else {
-        callback('no schema provided')
+      // Schema Presets
+      if (preset === 'createYamlSchema') {
+        ;({ system, schema } = createYamlSchemaPrompt)
+        console.log('Using custom system prompt:', { preset, system, schema })
       }
-      
-      console.log(JSON.stringify(zodSchema.shape, null, 2))
 
-      // Run the instructor with the content and schema
-      const response = await instructor({
+      // LLM Interaction (no schema validation if no schema)
+      const response = await client.call({
         system,
         temperature,
         content,
-        zodSchema,
+        zodSchema: schema ? yamlToZod(schema) : null, // Pass schema conditionally
+        modelName: 'llama3-70b-8192',
       })
 
-      console.log(JSON.stringify(response))
+      console.log('LLM Response:', JSON.stringify(response))
 
-      // If a callback function is provided, send the response to the callback
-      if (callback && typeof callback === 'function') {
-        // trim metadata from response
-        delete response._meta
-
-        // send response to callback
-        callback(response)
+      // Callback Handling
+      if (typeof callback === 'function') {
+        callback(response) // Send the full response, let the client decide what to trim
       }
     } catch (error) {
-      console.error('error:', error)
-      socket.emit('error', error)
+      console.error('LLM Schema Error:', error)
+      socket.emit('error', error.message)
     }
   }
 
