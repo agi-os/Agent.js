@@ -1,4 +1,4 @@
-import z from 'zod'
+import z, { ZodAny } from 'zod'
 import Ajv from 'ajv'
 import yaml from 'js-yaml'
 
@@ -132,7 +132,8 @@ const ajvToZod = ajvSchema => {
         .min(ajvSchema.minItems || 0)
         .max(ajvSchema.maxItems || undefined)
     case 'object': {
-      const shape = {}
+      // Allow any _meta object
+      const shape = { _meta: z.any() }
       for (const key in ajvSchema.properties) {
         shape[key] = ajvToZod(ajvSchema.properties[key])
         if (!ajvSchema.required?.includes(key)) {
