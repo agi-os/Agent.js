@@ -7,6 +7,7 @@ import cors from 'cors'
 
 import handleMessage from './handlers/handleMessage.js'
 import handleLLM from './handlers/handleLLM.js'
+import handleLlmWithSchema from './handlers/handleLlmWithSchema.js'
 import {
   getSchema,
   loadSchema,
@@ -64,6 +65,7 @@ io.on('connection', async socket => {
 
   // Handle LLM events
   socket.on('llm', handleLLM(socket))
+  socket.on('llmSchema', handleLlmWithSchema(socket))
 
   // Handle tool events
   socket.on('tool', toolCaller(socket))

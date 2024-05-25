@@ -4,8 +4,6 @@ const { parsed } = config()
 import Instructor from '@instructor-ai/instructor'
 import Groq from 'groq-sdk'
 
-import createZodSchemaFromJson from '../handlers/createZodSchemaFromJson.js'
-
 export const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY || parsed.GROQ_API_KEY,
 })
@@ -16,38 +14,45 @@ export const client = Instructor({
   debug: true,
 })
 
-const GenericSchema = createZodSchemaFromJson(
-  '{"response": {"type": "string", "description": "Response"}}'
-)
-
-const run = async (content, schema = GenericSchema) => {
+const instructor = async ({
+  system = null,
+  content,
+  temperature = 1,
+  max_retries = 0,
+  zodSchema,
+  model = 'llama3-70b-8192',
+}) => {
   try {
-    const user = await client.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are a world class extractor. You always respond in JSON. Current date is ' +
-            new Date().toISOString(),
-        },
-        {
-          role: 'user',
-          content,
-        },
-      ],
-      model: 'llama3-70b-8192',
-      temperature: 0.1,
-      max_retries: 1,
-      response_model: { schema, name: 'Schema' },
+    let messages = []
+
+    if (system) {
+      messages.push({
+        role: 'system',
+        content: system,
+      })
+    }
+
+    messages.push({
+      role: 'user',
+      content,
     })
 
-    console.log(user)
+    const response = await client.chat.completions.create({
+      messages,
+      model,
+      temperature,
+      max_retries,
+      response_model: {
+        schema: zodSchema,
+        name: 'Schema',
+      },
+    })
 
-    return user
+    return response
   } catch (error) {
     console.error(error)
     return { error: error.message }
   }
 }
 
-export default run
+export default instructor
