@@ -36,7 +36,11 @@ export const client = {
         messages.push({ role: 'system', content: system })
       }
 
-      messages.push({ role: 'user', content })
+      messages.push({
+        role: 'user',
+        content:
+          typeof content === 'string' ? content : JSON.stringify(content),
+      })
 
       const instructorClient = Instructor({
         client: groqClient,

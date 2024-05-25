@@ -1,7 +1,7 @@
 import { yamlToZod } from '../utils/schemaConversions.js'
 import { client } from '../llm/index.js'
-import { createYamlSchemaPrompt } from '../prompts/createYamlSchema.js'
-
+import createYamlSchema from '../prompts/createYamlSchema.js'
+import markdown from '../prompts/markdown.js'
 /**
  * Handles LLM requests that involve schema interaction.
  *
@@ -22,14 +22,28 @@ const handleLlmWithSchema =
     try {
       // Schema Presets
       if (preset === 'createYamlSchema') {
-        ;({ system, schema } = createYamlSchemaPrompt)
-        console.log('Using custom system prompt:', { preset, system, schema })
+        ;({ system, schema } = createYamlSchema)
+        console.log('Using createYamlSchema preset:', {
+          preset,
+          system,
+          schema,
+        })
+      }
+
+      if (preset === 'markdown') {
+        ;({ system, schema } = markdown)
+        console.log('Using markdown preset:', { preset, system, schema })
+      }
+
+      // Fallback to markdown if system or schema are unavailable
+      if (!system || !schema) {
+        ;({ system, schema } = markdown)
       }
 
       // LLM Interaction (no schema validation if no schema)
       const response = await client.call({
         system,
-        temperature,
+        temperature: 0.8,
         content,
         zodSchema: schema ? yamlToZod(schema) : null, // Pass schema conditionally
         modelName: 'llama3-70b-8192',

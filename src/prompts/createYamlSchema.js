@@ -3,7 +3,7 @@
  *
  * @returns {object} - An object containing the system prompt and a default YAML schema string.
  */
-export const createYamlSchemaPrompt = {
+export default {
   system: `
 # YAML Schema Generator
 
@@ -47,5 +47,8 @@ properties:
     description: Short single word name summarizing the type schema represents
   yamlSchemaString: 
     type: string
-    description: YAML schema for storing the requested data format`,
+    description: YAML schema for storing the requested data format
+required:
+  - yamlSchemaName
+  - yamlSchemaString`,
 }
