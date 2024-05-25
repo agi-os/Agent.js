@@ -56,5 +56,7 @@
         }
       }
     }
-  }
+  },
+  // Automatically start the server when VS Code opens
+  "postAttachCommand": "bun i && bun start"
 }
