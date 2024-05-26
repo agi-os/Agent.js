@@ -32,13 +32,6 @@
         "Codium.codium"
       ],
       "settings": {
-        // Enable GitHub Copilot everywhere
-        "github.copilot.enable": {
-          "*": true,
-          "plaintext": true,
-          "markdown": true
-        },
-
         // Make Jest autorun on save only after the first run was triggered manually
         "jest.runMode": { "type": "on-save", "deferred": true },
         // Use prettier for formatting
