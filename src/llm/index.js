@@ -44,7 +44,7 @@ export const client = {
 
       const instructorClient = Instructor({
         client: groqClient,
-        mode: 'TOOLS',
+        mode: 'JSON',
         debug: true,
       })
 

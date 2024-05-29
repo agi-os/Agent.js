@@ -1,7 +1,9 @@
 import { yamlToZod } from '../utils/schemaConversions.js'
 import { client } from '../llm/index.js'
+
 import createYamlSchema from '../prompts/createYamlSchema.js'
 import markdown from '../prompts/markdown.js'
+import minecrafting from '../prompts/minecrafting.js'
 /**
  * Handles LLM requests that involve schema interaction.
  *
@@ -33,6 +35,11 @@ const handleLlmWithSchema =
       if (preset === 'markdown') {
         ;({ system, schema } = markdown)
         console.log('Using markdown preset:', { preset, system, schema })
+      }
+
+      if (preset === 'minecrafting') {
+        ;({ system, schema } = minecrafting)
+        console.log('Using minecrafting preset:', { preset, system, schema })
       }
 
       // Fallback to markdown if system or schema are unavailable

@@ -133,12 +133,14 @@ const ajvToZod = ajvSchema => {
     case 'object': {
       // Allow any _meta object
       const shape = { _meta: z.any() }
+
       for (const key in ajvSchema.properties) {
-        shape[key] = ajvToZod(ajvSchema.properties[key])
+        shape[key] = z.any() //  Use z.any() to allow any shape
         if (!ajvSchema.required?.includes(key)) {
           shape[key] = shape[key].optional()
         }
       }
+
       return z.object(shape).strict(!ajvSchema.additionalProperties)
     }
     default:

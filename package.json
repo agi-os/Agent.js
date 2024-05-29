@@ -6,6 +6,7 @@
   "version": "1.0.0",
   "description": "Agent.js",
   "type": "module",
+  "main": "src/index.js",
   "dependencies": {
     "@instructor-ai/instructor": "^1.2.1",
     "@types/express": "^4.17.21",
