@@ -10,6 +10,8 @@ import handleLlmWithSchema from './handlers/handleLlmWithSchema.js'
 import { getToolSchemas } from './handlers/handleSchema.js'
 import handleAction from './handlers/handleAction.js'
 
+import useWeb from './tools/useWeb.js'
+
 const app = express()
 app.use(cors())
 const server = createServer(app)
@@ -32,6 +34,17 @@ io.on('connection', async socket => {
 
   // Socket Event Handlers
   socket.on('llmSchema', handleLlmWithSchema(socket))
+
+  socket.on('useWeb', async (params, callback) => {
+    // extract the parameters from the params object
+    const { query, domain } = params
+
+    // call the useWeb function with the query and domain parameters
+    const results = await useWeb({ query, domain })
+
+    // return the results to the client
+    callback(results)
+  })
 
   socket.on('action', handleAction(socket))
   socket.on('toolSchemas', getToolSchemas(socket))
