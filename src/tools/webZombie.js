@@ -1,16 +1,22 @@
 import playwright from 'playwright'
-
 import { WebExtensionBlocker } from '@cliqz/adblocker-webextension'
 import shouldFulfillWithEmptyBody from './shouldFulfillWithEmptyBody.js'
 
 /**
- * Searches the web for the given query
- * @param {Object} props - The properties of the search
+ * Captures a POST request from UI, upgrades the original requests to be actually useful
+ * @param {Object} props - The properties of the call
  * @param {string} props.query - The search query
  * @param {string} props.domain - The domain of search engine to use
+ * @param {string} props.placeholder - The placeholder value we wish to modify
+ * @param {string} props.value - The value we wish to set the placeholder to
  * @returns {string} The search results
  */
-const useWeb = async ({ query = 'example', domain = 'yandex.com' }) => {
+const webZombie = async ({
+  query = 'is tomato a fruit',
+  domain = 'yandex.com',
+  placeholder = 'is tomato a fruit',
+  value = 'is banana a fruit',
+}) => {
   // Launch a new instance of Firefox browser in non-headless mode
   const browser = await playwright.firefox.launch({
     headless: false,
@@ -28,14 +34,42 @@ const useWeb = async ({ query = 'example', domain = 'yandex.com' }) => {
     viewport: { width: 1280, height: 1024 },
   })
 
-  // Intercept all requests and check if they should be fulfilled with an empty body to optimize performance
+  // Upgrade the context with our request upgrade feature, changing requests in flight
   await context.route('**/*', async (route, request) => {
-    // Check if the request should be fulfilled with an empty body
-    if (shouldFulfillWithEmptyBody(request.url())) {
-      return route.fulfill({ body: Buffer.from('') })
+    try {
+      // Check if the request should be fulfilled with an empty body
+      if (shouldFulfillWithEmptyBody(request.url())) {
+        return route.fulfill({ body: Buffer.from('') })
+      }
+
+      // Check if we should intercept the request
+      if (request.method() === 'POST') {
+        console.log('Intercepted request:', request.url())
+        const originalBody = await request.postData()
+        console.log('Original Request Body:', originalBody) // Log for debugging
+
+        if (originalBody) {
+          // Parse the URL-encoded query parameters
+          const params = new URLSearchParams(originalBody)
+
+          // Scan all parameters for the placeholder and modify it
+          for (const [key, val] of params.entries()) {
+            if (val === placeholder) {
+              params.set(key, value)
+              break
+            }
+          }
+
+          // Continue with the modified body
+          await route.continue({ postData: params.toString() })
+          return
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing/modifying request:', error)
     }
 
-    // Passthrough the request to continue loading the page
+    // Continue with the original request if no modifications were made
     await route.continue()
   })
 
@@ -134,4 +168,4 @@ const useWeb = async ({ query = 'example', domain = 'yandex.com' }) => {
   return data
 }
 
-export default useWeb
+export default webZombie

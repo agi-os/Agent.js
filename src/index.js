@@ -11,6 +11,7 @@ import { getToolSchemas } from './handlers/handleSchema.js'
 import handleAction from './handlers/handleAction.js'
 
 import useWeb from './tools/useWeb.js'
+import webZombie from './tools/webZombie.js'
 
 const app = express()
 app.use(cors())
@@ -41,6 +42,14 @@ io.on('connection', async socket => {
 
     // call the useWeb function with the query and domain parameters
     const results = await useWeb({ query, domain })
+
+    // return the results to the client
+    callback(results)
+  })
+
+  socket.on('webZombie', async (params, callback) => {
+    // call the function with the parameters
+    const results = await webZombie(params)
 
     // return the results to the client
     callback(results)
