@@ -1,6 +1,16 @@
-import playwright from 'playwright'
+import playwright from 'playwright-extra'
 import { WebExtensionBlocker } from '@cliqz/adblocker-webextension'
 import shouldFulfillWithEmptyBody from './shouldFulfillWithEmptyBody.js'
+import UserAgent from 'user-agents'
+
+const userAgent = new UserAgent({ deviceCategory: 'desktop' })
+
+import stealth from 'puppeteer-extra-plugin-stealth'
+const pluginStealth = stealth()
+
+pluginStealth.enabledEvasions.delete('user-agent-override')
+
+playwright.firefox.use(pluginStealth)
 
 /**
  * Captures a POST request from UI, upgrades the original requests to be actually useful
@@ -12,13 +22,14 @@ import shouldFulfillWithEmptyBody from './shouldFulfillWithEmptyBody.js'
  * @returns {string} The search results
  */
 const webZombie = async ({
-  query = 'is tomato a fruit',
-  domain = 'yandex.com',
-  placeholder = 'is tomato a fruit',
-  value = 'is banana a fruit',
+  query = 'why is sky blue',
+  domain = 'etools.ch',
+  placeholder = 'why is sky blue',
+  value = 'is tomato a fruit',
 }) => {
   // Launch a new instance of Firefox browser in non-headless mode
   const browser = await playwright.firefox.launch({
+    // Disable headless mode to see the browser in action
     headless: false,
   })
 
@@ -28,11 +39,51 @@ const webZombie = async ({
 
   // Create a new browser context. This is like a separate session in the browser.
   const context = await browser.newContext({
-    serviceWorkers: 'block', // Block Service Workers to ensure routing works
-    ignoreHTTPSErrors: true, // Prevent 403 errors from blocking the search
-    bypassCSP: true, // Bypass Content Security Policy to allow for more flexibility
-    viewport: { width: 1280, height: 1024 },
+    // Set the user agent to a desktop user agent to mimic a real user
+    userAgent: userAgent.toString(),
+
+    // Disable service workers to prevent any background scripts from running
+    serviceWorkers: 'block',
+
+    // Prevent 403 errors from blocking the search
+    ignoreHTTPSErrors: true,
+
+    // Bypass Content Security Policy to allow for more flexibility
+    bypassCSP: true,
+
+    // Set the viewport size to the user agent's viewport size
+    viewport: {
+      width: userAgent.data.viewportWidth,
+      height: userAgent.data.viewportHeight,
+    },
   })
+
+  // Remove the 'webdriver' property to prevent misconfigured websites from breaking
+  await context.addInitScript(
+    `const defaultGetter = Object.getOwnPropertyDescriptor(
+      Navigator.prototype,
+      "webdriver"
+    ).get;
+    defaultGetter.apply(navigator);
+    defaultGetter.toString();
+    Object.defineProperty(Navigator.prototype, "webdriver", {
+      set: undefined,
+      enumerable: true,
+      configurable: true,
+      get: new Proxy(defaultGetter, {
+        apply: (target, thisArg, args) => {
+          Reflect.apply(target, thisArg, args);
+          return false;
+        },
+      }),
+    });
+    const patchedGetter = Object.getOwnPropertyDescriptor(
+      Navigator.prototype,
+      "webdriver"
+    ).get;
+    patchedGetter.apply(navigator);
+    patchedGetter.toString();`
+  )
 
   // Upgrade the context with our request upgrade feature, changing requests in flight
   await context.route('**/*', async (route, request) => {
@@ -52,7 +103,7 @@ const webZombie = async ({
           // Parse the URL-encoded query parameters
           const params = new URLSearchParams(originalBody)
 
-          // Scan all parameters for the placeholder and modify it
+          // Scan all parameters for our placeholder and modify it if found
           for (const [key, val] of params.entries()) {
             if (val === placeholder) {
               params.set(key, value)

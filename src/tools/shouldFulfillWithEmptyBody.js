@@ -1,8 +1,13 @@
 // List of file extensions to fulfill with an empty body
 const emptyBodyExtensions = ['.png', '.jpg', '.css']
 
-// List of filenames to fulfill with an empty body
-const emptyBodyFilenames = ['favicon.ico', 'web-vitals']
+// List of paths to fulfill with an empty body
+const emptyBodyPaths = [
+  'favicon.ico',
+  'web-vitals',
+  'intake.pbstck.com',
+  'yield.h5v.eu',
+]
 
 /**
  * Checks if the given URL should be fulfilled with an empty body based on its extension or filename.
@@ -14,7 +19,7 @@ const shouldFulfillWithEmptyBody = url => {
   // Check if the URL ends with any of the specified extensions or filenames
   return (
     emptyBodyExtensions.some(extension => url.endsWith(extension)) ||
-    emptyBodyFilenames.some(filename => url.includes(filename))
+    emptyBodyPaths.some(filename => url.includes(filename))
   )
 }
 
