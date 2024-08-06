@@ -18,9 +18,11 @@
     "express": "^4.19.2",
     "groq-sdk": "^0.3.3",
     "js-yaml": "^4.1.0",
+    "jsonrepair": "^3.8.0",
     "playwright": "^1.43.1",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "ragtitles": "^2.0.2",
     "socket.io": "^4.7.5",
     "user-agents": "^1.1.237",
     "zod": "^3.23.5"

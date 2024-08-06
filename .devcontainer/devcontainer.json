@@ -4,7 +4,8 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers-contrib/features/prettier:1": {},
-    "ghcr.io/prulloac/devcontainer-features/bun:1": {}
+    "ghcr.io/prulloac/devcontainer-features/bun:1": {},
+    "ghcr.io/devcontainers-contrib/features/yt-dlp:2": {}
   },
 
   "customizations": {
@@ -28,8 +29,8 @@
         "bpruitt-goddard.mermaid-markdown-syntax-highlighting",
         // Markdown mermaid preview rendering
         "bierner.markdown-mermaid",
-        // Codiumate
-        "Codium.codium"
+        // Continue LLM integrations
+        "Continue.continue"
       ],
       "settings": {
         // Make Jest autorun on save only after the first run was triggered manually

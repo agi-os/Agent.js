@@ -12,6 +12,8 @@ import handleAction from './handlers/handleAction.js'
 
 import useWeb from './tools/useWeb.js'
 import webZombie from './tools/webZombie.js'
+import ragTitles from './tools/ragTitles.js'
+import ragTitleSegmentation from './tools/ragTitleSegmentation.js'
 
 const app = express()
 app.use(cors())
@@ -50,6 +52,22 @@ io.on('connection', async socket => {
   socket.on('webZombie', async (params, callback) => {
     // call the function with the parameters
     const results = await webZombie(params)
+
+    // return the results to the client
+    callback(results)
+  })
+
+  socket.on('ragTitles', async (params, callback) => {
+    // call the function with the parameters
+    const results = await ragTitles(params)
+
+    // return the results to the client
+    callback(results)
+  })
+
+  socket.on('ragTitleSegmentation', async (params, callback) => {
+    // call the function with the parameters
+    const results = await ragTitleSegmentation(params)
 
     // return the results to the client
     callback(results)

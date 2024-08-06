@@ -21,12 +21,19 @@ playwright.firefox.use(pluginStealth)
  * @param {string} props.value - The value we wish to set the placeholder to
  * @returns {string} The search results
  */
-const webZombie = async ({
-  query = 'why is sky blue',
-  domain = 'etools.ch',
-  placeholder = 'why is sky blue',
-  value = 'is tomato a fruit',
-}) => {
+const webZombie = async props => {
+  // Sanity check, are all the required parameters present?
+  if (!props.query || !props.domain || !props.placeholder || !props.value) {
+    return 'Missing required parameters. Got: ' + JSON.stringify(props)
+  }
+
+  const {
+    query = 'why is sky blue',
+    domain = 'etools.ch',
+    placeholder = 'why is sky blue',
+    value = 'is tomato a fruit',
+  } = props
+
   // Launch a new instance of Firefox browser in non-headless mode
   const browser = await playwright.firefox.launch({
     // Disable headless mode to see the browser in action
