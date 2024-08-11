@@ -5,7 +5,8 @@
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers-contrib/features/prettier:1": {},
     "ghcr.io/prulloac/devcontainer-features/bun:1": {},
-    "ghcr.io/devcontainers-contrib/features/yt-dlp:2": {}
+    "ghcr.io/devcontainers-contrib/features/yt-dlp:2": {},
+    "ghcr.io/itsmechlark/features/redis-server:1": {}
   },
 
   "customizations": {
@@ -23,8 +24,6 @@
         "mhutchie.git-graph",
         // ESLint integration
         "dbaeumer.vscode-eslint",
-        // Jest support
-        "Orta.vscode-jest",
         // Markdown mermaid syntax highlighting
         "bpruitt-goddard.mermaid-markdown-syntax-highlighting",
         // Markdown mermaid preview rendering
@@ -52,5 +51,15 @@
     }
   },
   // Automatically start the server when VS Code opens
-  "postAttachCommand": "bun i && bun start"
+  "postAttachCommand": "bun start",
+
+  // Run the container with host networking to allow it to access the host's network
+  "runArgs": ["--network=host"],
+
+  "containerEnv": {
+    // Set the Redis host to be the localhost for the container to connect to the Redis server running on the host machine
+    "REDIS_HOST": "localhost",
+    // Set the Redis port to be 6379 for the container to connect to the Redis server running on the host machine
+    "REDIS_PORT": "6379"
+  }
 }

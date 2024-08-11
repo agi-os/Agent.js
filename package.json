@@ -1,6 +1,10 @@
 {
   "scripts": {
-    "start": "node ./src/index.js"
+    "start": "bun stop && bun pm2start && bun log",
+    "pm2start": "bunx pm2 start ecosystem.config.cjs",
+    "stop": "bunx pm2 delete all || true",
+    "log": "bunx pm2 logs --timestamp 'H:mm:ss.SSS' --lines 100",
+    "flush": "bunx pm2 flush"
   },
   "name": "agentjs",
   "version": "1.0.0",
@@ -8,17 +12,23 @@
   "type": "module",
   "main": "src/index.js",
   "dependencies": {
+    "@bull-board/api": "^5.21.3",
+    "@bull-board/express": "^5.21.3",
+    "@bull-board/fastify": "^5.21.3",
     "@cliqz/adblocker-webextension": "^1.27.11",
     "@instructor-ai/instructor": "^1.2.1",
     "@types/express": "^4.17.21",
     "ajv": "^8.13.0",
+    "bullmq": "^5.12.1",
     "cors": "^2.8.5",
     "doctrine": "^3.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "fastify": "^4.28.1",
     "groq-sdk": "^0.3.3",
     "js-yaml": "^4.1.0",
     "jsonrepair": "^3.8.0",
+    "lru-cache": "^11.0.0",
     "playwright": "^1.43.1",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",

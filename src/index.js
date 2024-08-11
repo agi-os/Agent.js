@@ -85,3 +85,6 @@ const PORT = process.env.PORT || 4444
 server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`)
 })
+
+// Do not crash on random 3rd party errors.
+process.on('uncaughtException', e => console.error('uncaughtException', err))

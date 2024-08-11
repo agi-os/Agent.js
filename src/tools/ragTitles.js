@@ -1,6 +1,8 @@
 import { convert } from '../../node_modules/ragtitles/src/index.js'
 import { execSync } from 'child_process'
 import fs from 'fs'
+import { LRUCache } from 'lru-cache'
+const cache = new LRUCache({ max: 100 })
 
 /**
  * Retrieves subtitles suitable for RAG use
@@ -20,19 +22,38 @@ const ragTitles = async props => {
     return []
   }
 
-  // Download the transcript
-  const command = `yt-dlp --write-auto-subs --skip-download https://www.youtube.com/watch?v=${videoId}`
+  // Check if the result is already in the cache
+  const cachedResult = cache.get(videoId)
+  if (cachedResult) {
+    return cachedResult
+  }
 
-  execSync(command, { stdio: 'ignore' })
+  // Download the actual words said in the video
+  const command = `yt-dlp --write-auto-subs --sub-format "vtt" --skip-download https://www.youtube.com/watch?v=${videoId}`
+
+  // Run the command to download the subtitles
+  execSync(command, { stdio: 'pipe' })
 
   // Find the downloaded transcript file
-  const transcriptFiles = fs
+  let transcriptFiles = fs
     .readdirSync('./')
     .filter(file => file.endsWith('.en.vtt'))
 
   // Check if any transcript files were found
   if (transcriptFiles.length === 0) {
+    // Try to download the fake-subs as fallback for videos where reality is censored
+    const command = `yt-dlp --write-subs --sub-lang "en.*" --sub-format "vtt" --skip-download https://www.youtube.com/watch?v=${videoId}`
+
+    execSync(command, { stdio: 'pipe' })
+
+    // Find the downloaded transcript file
+    transcriptFiles = fs.readdirSync('./').filter(file => file.endsWith('.vtt'))
+  }
+
+  // Check if any transcript files were found
+  if (transcriptFiles.length === 0) {
     console.warn('No transcript files found.')
+    // TODO: add whisper to brute force transcribe the mp3 ourselves
     return []
   }
 
@@ -56,6 +77,9 @@ const ragTitles = async props => {
 
     // Delete the transcript file
     fs.unlinkSync(fileName)
+
+    // Store the result in the cache
+    cache.set(videoId, result)
 
     // Return the extracted data
     return result

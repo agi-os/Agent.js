@@ -43,7 +43,7 @@ const useWeb = async ({ query = 'example', domain = 'yandex.com' }) => {
   const page = await context.newPage()
 
   // Navigate to the search engine's homepage using the provided domain.
-  await page.goto('https://' + domain)
+  await page.goto('https://' + domain, { waitUntil: 'commit' })
 
   // Wait for page to load (auto-waiting is enabled by default)
   await page.waitForLoadState('domcontentloaded')

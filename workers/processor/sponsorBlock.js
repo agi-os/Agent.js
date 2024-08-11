@@ -1,0 +1,91 @@
+import axios from 'axios'
+const axiosInstance = axios.create()
+
+import qs from 'qs'
+import { promises as fsPromises } from 'fs'
+import path from 'path'
+
+// Define the API URL for retrieving skip segments
+const API_URL = 'https://sponsor.ajay.app/api/skipSegments'
+
+const main = async job => {
+  try {
+    const {
+      videoId,
+      categories = [
+        'sponsor',
+        'intro',
+        'outro',
+        'interaction',
+        'selfpromo',
+        'music_offtopic',
+        'preview',
+        'filler',
+      ],
+      actionTypes = ['skip'],
+    } = job.data
+
+    // If no video ID is found, throw an error
+    if (!videoId) {
+      throw new Error('No video ID provided')
+    }
+
+    // Define the working directory
+    const workingDir = `/tmp/agentjs/${videoId}`
+
+    // Defines the output file path
+    const outputFilePath = path.join(workingDir, 'spam.json')
+
+    // Create the working directory if it doesn't exist
+    await fsPromises.mkdir(workingDir, { recursive: true })
+
+    // If the output file already exists, return its path
+    try {
+      await fsPromises.access(outputFilePath, fsPromises.constants.F_OK)
+      return { path: outputFilePath }
+    } catch (error) {
+      // File does not exist, continue with the rest of the function
+    }
+
+    // Construct the API URL with the video hash and query parameters
+    const url = `${API_URL}/?${qs.stringify({
+      videoID: videoId,
+      categories: JSON.stringify(categories),
+      actionTypes: JSON.stringify(actionTypes),
+    })}`
+
+    // Make a GET request to the API URL with the video ID and categories as query parameters
+    const response = await axios.get(url)
+
+    // If the response status code is not 200, throw an error
+    if (response.status !== 200) {
+      throw new Error(
+        `SponsorBlock API returned status code ${response.status}`
+      )
+    }
+
+    // Clean up the unneeded data
+    const cleanedSegments = response.data.map(segment => {
+      return {
+        category: segment.category,
+        start: Math.floor(parseFloat(segment.segment[0])),
+        end: Math.floor(parseFloat(segment.segment[1])),
+      }
+    })
+
+    // Write the cleaned segments to the output file
+    await fsPromises.writeFile(
+      outputFilePath,
+      JSON.stringify(cleanedSegments, null, 2)
+    )
+
+    const result = { path: outputFilePath }
+    console.log('Job result:', JSON.stringify(result))
+    return result
+  } catch (error) {
+    console.error('Error in main function:', error)
+    throw error
+  }
+}
+
+export default main
