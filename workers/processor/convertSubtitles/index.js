@@ -1,6 +1,7 @@
 import { promises as fsPromises } from 'fs'
 import path from 'path'
 import converter from './converter.js'
+import { getFromPg } from './pg.js'
 
 /**
  * Main function to process a job.
@@ -51,23 +52,22 @@ const main = async job => {
 
     // If we have spam ranges, use them to remove the spam from the subtitle data
 
-    // Try to load the file spam.json
-    const spamFilePath = path.join(workingDir, 'spam.json')
-    if (
-      await fsPromises
-        .access(spamFilePath)
-        .then(() => true)
-        .catch(() => false)
-    ) {
-      // If the file exists, load it
-      const spamData = JSON.parse(
-        await fsPromises.readFile(spamFilePath, 'utf8')
-      )
+    // Fetch spam ranges from database
+    const pgGetRe = await getFromPg(videoId)
+    console.log({ pgGetRe })
+
+    // If the data is already in the database, return it
+    if (pgGetRe) {
+      const spamData = pgGetRe
 
       // Replace the time ranges containing spam with blank strings
       for (const spam of spamData) {
-        // Iterate over the subtitle data, each index is the seconds offset from start, where spam.start and spam.end define the range
-        for (let i = spam.start; i <= spam.end; i++) {
+        // Expand the time slot by 1 second before the spam timestamp to skip lead in
+        const start = Math.max(0, spam.start - 1)
+        const end = spam.end
+
+        // Iterate over the subtitle data, each index is the seconds offset from start
+        for (let i = start; i <= end; i++) {
           // If the index exists in the subtitle data, replace it with a blank string
           if (subtitleData[i]) {
             subtitleData[i] = ''

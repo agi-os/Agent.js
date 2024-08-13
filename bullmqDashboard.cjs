@@ -12,11 +12,11 @@ const run = async () => {
   // Create a new FastifyAdapter instance
   const serverAdapter = new FastifyAdapter()
 
-  // Import the workerList from the workers/index.js file
-  const { workerList } = await import('./workers/index.js')
+  // Import the workerList from the workers dir
+  const workerList = (await import('./workers/workerList.js')).default
 
   // Import the default export from the workers/queue/getQueue.js file
-  const getQueue = await (await import('./workers/queue/getQueue.js')).default
+  const getQueue = (await import('./workers/queue/getQueue.js')).default
 
   // Create a new BullMQAdapter instance for each worker in the workerList and store them in the queues array
   const queues = workerList.map(worker => new BullMQAdapter(getQueue(worker)))

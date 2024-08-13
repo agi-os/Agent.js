@@ -1,6 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import splitVideoTranscriptIntoChunks from './splitVideoTranscriptIntoChunks.js'
+import processShortChunks from './processShortChunks.js'
 
 /**
  * Ingests an array of second sized subtitle chunks, then splits them into strings of equal time duration.
@@ -19,6 +20,9 @@ const main = async job => {
     // Split subtitles into chunks
     const chunks = splitVideoTranscriptIntoChunks(subtitles, chunkCount)
 
+    // Process the short snippets and clean away empty chunks
+    const processedChunks = processShortChunks(chunks)
+
     // Save chunked subtitles
     const chunkedSubtitlesPath = path.join(
       '/tmp/agentjs',
@@ -27,7 +31,10 @@ const main = async job => {
     )
 
     // Write the chunked subtitles to a file
-    await fs.writeFile(chunkedSubtitlesPath, JSON.stringify(chunks, null, 2))
+    await fs.writeFile(
+      chunkedSubtitlesPath,
+      JSON.stringify(processedChunks, null, 2)
+    )
 
     return { path: chunkedSubtitlesPath, chunkCount }
   } catch (error) {

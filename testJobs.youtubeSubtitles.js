@@ -1,16 +1,12 @@
 import downloadSubtitles from './workers/job/downloadSubtitles.js'
-import generateName from './workers/job/generateName.js'
-// import addToQueue from './workers/queue/addToQueue.js'
 import convertSubtitles from './workers/job/convertSubtitles.js'
 import chunkSubtitles from './workers/job/chunkSubtitles.js'
 import sponsorBlock from './workers/job/sponsorBlock.js'
+import extractVideoId from './extractVideoId.js'
 
-async function addJobs() {
-  // Use first parameter from command line 'bun addJobs.js <youtube-url>'
-  const url = process.argv[2]
+async function main(param) {
+  const videoId = extractVideoId(param)
 
-  // Extract video id part of url
-  const videoId = url.split('v=')[1]
   if (!videoId) {
     console.error('Invalid YouTube URL')
     return
@@ -18,9 +14,6 @@ async function addJobs() {
 
   // Block spam
   await sponsorBlock(videoId)
-
-  // Wait for 3 seconds to allow for 3rd party spam list download
-  await new Promise(resolve => setTimeout(resolve, 3000))
 
   // Add job to queue
   await downloadSubtitles(videoId)
@@ -36,11 +29,11 @@ async function addJobs() {
     await chunkSubtitles(videoId, divisor)
   }
 
-  // Add job to queue
-  await generateName({ type: 'dog' })
+  // await generateName({ type: 'dog' })
 }
 
-await addJobs()
+// Pass in the video id or url as the first argument
+await main(process.argv[2])
 
 // quit process
 process.exit(0)

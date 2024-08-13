@@ -5,6 +5,10 @@ import qs from 'qs'
 import { promises as fsPromises } from 'fs'
 import path from 'path'
 
+import { getFromPg, insertIntoPg } from './pg.js'
+
+import fetchData from './fetchData.js'
+
 // Define the API URL for retrieving skip segments
 const API_URL = 'https://sponsor.ajay.app/api/skipSegments'
 
@@ -30,6 +34,14 @@ const main = async job => {
       throw new Error('No video ID provided')
     }
 
+    const pgGetRe = await getFromPg(videoId)
+    console.log(pgGetRe)
+
+    // If the data is already in the database, return it
+    if (pgGetRe) {
+      return { dbData: pgGetRe }
+    }
+
     // Define the working directory
     const workingDir = `/tmp/agentjs/${videoId}`
 
@@ -39,13 +51,13 @@ const main = async job => {
     // Create the working directory if it doesn't exist
     await fsPromises.mkdir(workingDir, { recursive: true })
 
-    // If the output file already exists, return its path
-    try {
-      await fsPromises.access(outputFilePath, fsPromises.constants.F_OK)
-      return { path: outputFilePath }
-    } catch (error) {
-      // File does not exist, continue with the rest of the function
-    }
+    // // If the output file already exists, return its path
+    // try {
+    //   await fsPromises.access(outputFilePath, fsPromises.constants.F_OK)
+    //   return { path: outputFilePath }
+    // } catch (error) {
+    //   // File does not exist, continue with the rest of the function
+    // }
 
     // Construct the API URL with the video hash and query parameters
     const url = `${API_URL}/?${qs.stringify({
@@ -55,17 +67,10 @@ const main = async job => {
     })}`
 
     // Make a GET request to the API URL with the video ID and categories as query parameters
-    const response = await axios.get(url)
-
-    // If the response status code is not 200, throw an error
-    if (response.status !== 200) {
-      throw new Error(
-        `SponsorBlock API returned status code ${response.status}`
-      )
-    }
+    const responseData = await fetchData(url)
 
     // Clean up the unneeded data
-    const cleanedSegments = response.data.map(segment => {
+    const cleanedSegments = responseData.map(segment => {
       return {
         category: segment.category,
         start: Math.floor(parseFloat(segment.segment[0])),
@@ -74,12 +79,23 @@ const main = async job => {
     })
 
     // Write the cleaned segments to the output file
-    await fsPromises.writeFile(
+    const writeFileRe = await fsPromises.writeFile(
       outputFilePath,
       JSON.stringify(cleanedSegments, null, 2)
     )
 
-    const result = { path: outputFilePath }
+    console.log({ writeFileRe })
+
+    const pgInsertRe = await insertIntoPg({
+      videoId,
+      categories,
+      actionTypes,
+      segments: cleanedSegments,
+    })
+
+    console.log({ pgInsertRe })
+
+    const result = { path: outputFilePath, writeFileRe, pgInsertRe }
     console.log('Job result:', JSON.stringify(result))
     return result
   } catch (error) {

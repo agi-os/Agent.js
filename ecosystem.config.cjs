@@ -13,7 +13,7 @@ module.exports = {
     {
       name: 'worker', // Worker for BullMQ
       script: './workers/index.js', // Path to worker entry point
-      instances: 'max', // Use all cpus
+      instances: '4', // Number of worker instances to run in parallel
       exec_mode: 'cluster', // Run in cluster mode for parallel processing
     },
   ],
